@@ -44,30 +44,37 @@ public abstract class AbstractMessageConsumer implements MessageListener {
         this.sendToQueue3 = sendToQueue3;
     }
 
+    public String toString() {
+    		return String.format("%s - %s - %s", this.getClass().getSimpleName(), System.getProperty("jboss.node.name"), Thread.currentThread().getName());
+    }
+    
     public void onMessage(Message msg) {
         long start = System.currentTimeMillis();
 
         try {
-            if (msg instanceof BytesMessage)
-            {
+	        	if (msg instanceof TrackableMessage) {
+	        		TrackableMessage tmsg = ((TrackableMessage) msg);
+	        		tmsg.addPath(this.toString());
+	        		if(tmsg.isSendToQueue3())
+	        			sendMessage(msg, messageQueue3, jmsUser, jmsPass);
+	        		else
+	        			System.out.println(tmsg);
+	        	}
+	        	else if (msg instanceof BytesMessage) {
                 String messageId = msg.getStringProperty("MESSAGE_ID");
                 System.out.println(">>>>>>>>>>" + "MESSAGE_ID:" + messageId + "<<<<<<<<<<<<");
-            }
-            try {
                 if (sendToQueue3)
-                    sendMessage(messageQueue3, jmsUser, jmsPass);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                // add the invocation start/finish time to the stats
-                mdbStats.addInvocation(start, System.currentTimeMillis());
-            }
+                    sendMessage(null, messageQueue3, jmsUser, jmsPass);
+            }                       
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            // add the invocation start/finish time to the stats
+            mdbStats.addInvocation(start, System.currentTimeMillis());
         }
     }
 
-    public void sendMessage(Destination queue, String jmsUser, String jmsPass) {
+    public void sendMessage(Message msg, Destination queue, String jmsUser, String jmsPass) {
         Connection connection = null;
         MessageProducer producer = null;
         try {
@@ -75,7 +82,9 @@ public abstract class AbstractMessageConsumer implements MessageListener {
             connection = connectionFactory.createConnection();
             Session session = connection.createSession(true, Session.SESSION_TRANSACTED);
             producer = session.createProducer(queue);
-            producer.send(session.createTextMessage("Hello"));
+            if(msg == null)
+            		msg = session.createTextMessage("Hello");
+            producer.send(msg);
             connection.start();
         } catch (JMSException e) {
             e.printStackTrace();

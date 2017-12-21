@@ -16,6 +16,8 @@ package org.jboss.as.quickstarts.jms;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
+import org.jboss.as.quickstarts.mdb.TrackableMessage;
+
 /**
  * @author Clebert Suconic
  */
@@ -24,15 +26,16 @@ public class SimpleProducer extends AbstractJMS implements Runnable {
 
 	private int sleepTime;
 	
-	public SimpleProducer(String remote, String destinationString, int sleepTime) {
+	public SimpleProducer(String remote, String destinationString, int sleepTime, boolean sendToQueue3) {
 		super(remote, destinationString);
 		this.sleepTime = sleepTime;
+		super.sendToQueue3 = sendToQueue3;
 	}
 
 	public static void main(String args[]) {
 		
 		if(args.length < 4) {
-			System.out.println("Usage: [remote://IP:4447,remote://IP2:4447] [destination] [sleepTime] [numberOfThreads]");
+			System.out.println("Usage: [remote://IP:4447,remote://IP2:4447] [destination] [sleepTime] [numberOfThreads] [sendToQueue3 default true]");
 			System.out.println("To configure username/password: -Dusername=username -Dpassword=password");
 			System.exit(0);
 		}
@@ -41,12 +44,15 @@ public class SimpleProducer extends AbstractJMS implements Runnable {
 		String destinationString = args[1];		
 		int sleepTime = Integer.parseInt(args[2]);
 		int numberOfThreads = Integer.parseInt(args[3]);
-		
+		Boolean sendToQueue3 = true;
+		if(args.length > 4)
+			sendToQueue3 = Boolean.valueOf(args[4]);
+
 		System.out.println(String.format("remote=%s destination=%s sleepTime=%d ms numberOfThreads=%d", remote, destinationString, sleepTime, numberOfThreads));
 		
 		SimpleProducer[] producers = new SimpleProducer[numberOfThreads];
 		for (int i = 0; i < producers.length; i++)
-			producers[i] = new SimpleProducer(remote, destinationString, sleepTime);
+			producers[i] = new SimpleProducer(remote, destinationString, sleepTime, sendToQueue3);
 
 		createAndRunThreads(producers);
 
@@ -60,17 +66,20 @@ public class SimpleProducer extends AbstractJMS implements Runnable {
 	}
 
 	public void run() {
+		String threadName = Thread.currentThread().getName();
 		try {
 			connect();
 			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 			MessageProducer producer = session.createProducer(queue);
-
+			long thread_id = System.currentTimeMillis();
 			logThreadMessage("sleepTime " + sleepTime);
 			long i = 0;
 			while (true) {
-				producer.send(session.createTextMessage("Message " + (i++)));
+                String message_id = (Long.toString(thread_id) + "-" + i);
+				TrackableMessage tmsg = new TrackableMessage(threadName, message_id);				
+//				producer.send(session.createTextMessage("Message " + (i++)));
+				producer.send(session.createObjectMessage(tmsg));
 				if (sleepTime > 0) {
-
 					Thread.sleep(sleepTime);
 				}
 				if (i % 100 == 0) {

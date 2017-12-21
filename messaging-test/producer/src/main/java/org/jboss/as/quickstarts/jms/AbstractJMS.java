@@ -46,11 +46,12 @@ public abstract class AbstractJMS implements Runnable {
 	Context context = null;
 	private String[] remotes;
 	private static int remoteIndex = 0;
-	private String destinationString;	
+	private String destinationString;
+	protected boolean sendToQueue3 = true;
 
 	protected AbstractJMS(String remote, String destinationString) {
 		this.remotes = remote.split(",");
-		this.destinationString = destinationString;
+		this.destinationString = destinationString;		
 	}
 
 	public static void createAndRunThreads(AbstractJMS[] abstracJMSs) {

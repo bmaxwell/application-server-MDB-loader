@@ -22,7 +22,7 @@ import org.jboss.as.quickstarts.mdb.MDBStats;
 		@ActivationConfigProperty(propertyName = "clientId", propertyValue = "MessageConsumer1MessageListener"),
 		// @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "1")
 		@ActivationConfigProperty(propertyName = "useDLQ", propertyValue = "false"), 
-		@ActivationConfigProperty(propertyName = "ha", propertyValue = "true"),
+		@ActivationConfigProperty(propertyName = "hA", propertyValue = "true"),
 		})		
 public class MessageConsumer2 extends AbstractMessageConsumer implements MessageListener {
 
