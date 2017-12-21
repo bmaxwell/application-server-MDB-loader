@@ -42,6 +42,24 @@
         <!-- Declare the APIs we depend on and need for compilation. All 
             of them are provided by JBoss EAP 6 -->
 
+            <dependency>
+                <groupId>org.hornetq</groupId>
+                <artifactId>hornetq-server</artifactId>
+                <version>${version.org.hornetq}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.jboss.logging</groupId>
+                        <artifactId>jboss-logging-processor</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.jdeparser</groupId>
+                        <artifactId>jdeparser</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+
         <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jboss-dmr</artifactId>
